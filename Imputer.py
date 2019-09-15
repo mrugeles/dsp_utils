@@ -70,3 +70,12 @@ class Imputer():
             #return best model
         return None
     '''
+
+
+    def encode_categorical_features(this, values):
+        """Encode categorical features with LabelEncoder"""
+        from sklearn import preprocessing
+
+        enc = preprocessing.LabelEncoder().fit(values)
+        encoded_features = enc.transform(values)
+        return encoded_features
