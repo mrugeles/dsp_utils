@@ -1,5 +1,5 @@
 from enum import Enum
-from Model import Model
+#from Model import Model
 
 class ImputerStrategy(Enum):
     MEAN = 'mean'
@@ -18,7 +18,7 @@ class ImputerStrategy(Enum):
 
 class Imputer():
 
-    model = Model()
+    #model = Model()
 
     fill_mean = lambda col: col.fillna(col.mean())
     fill_median = lambda col: col.fillna(col.median())
