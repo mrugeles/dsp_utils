@@ -72,10 +72,16 @@ class Imputer():
     '''
 
 
-    def encode_categorical_features(this, values):
+    def label_encode(self, values):
         """Encode categorical features with LabelEncoder"""
         from sklearn import preprocessing
 
         enc = preprocessing.LabelEncoder().fit(values)
         encoded_features = enc.transform(values)
         return encoded_features
+
+    def encode_categorical_features(self, df):
+        dtypes_df = df.dtypes.to_frame(name = "dtype")
+        category_features = list(dtypes_df[dtypes_df['dtype'] == 'object'].index)
+        for category in category_features:
+            df[category] = self.label_encode(df[category])
