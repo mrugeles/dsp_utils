@@ -1,4 +1,5 @@
 from enum import Enum
+import pandas as pd
 #from Model import Model
 
 class ImputerStrategy(Enum):
@@ -85,3 +86,7 @@ class Imputer():
         category_features = list(dtypes_df[dtypes_df['dtype'] == 'object'].index)
         for category in category_features:
             df[category] = self.label_encode(df[category])
+    
+    def impute_half_missing(self, df, field, impute_field, default_value):
+        df[impute_field] = df[field].apply(lambda x: 1 if pd.isnull(x) == True else 0)
+        df[field] = df[field].apply(lambda x: default_value if pd.isnull(x) == True else x)
