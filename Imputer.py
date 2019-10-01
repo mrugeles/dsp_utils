@@ -41,6 +41,7 @@ class Imputer():
 
     def impute_grouped(self, dataset, target_feature, features, impute_strategy):
         dataset[target_feature] = dataset.groupby(features)[[target_feature]].apply(lambda df: self.impute(df, ImputerStrategy.MEAN))
+        dataset[target_feature] = dataset.groupby(features)[target_feature].transform(fill_mean)
         return dataset
 
     def impute_ordered(self, dataset, feature, grouped_features, impute_strategy):
