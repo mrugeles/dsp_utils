@@ -171,7 +171,7 @@ class Model():
 
       return best_learner, default_score, tuned_score
 
-    def get_results_df(results):
+    def get_results_df(self, results):
         results_df = pd.DataFrame(columns=['learner', 'train_time', 'pred_time', 'test_score', 'train_score'])
         for train_info in results:
             results_df = results_df.append(
