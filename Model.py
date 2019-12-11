@@ -104,7 +104,7 @@ class Model():
     #       dfResults (dataset): Dataset with information about the trained model.
     ###
 
-    def train_eval(self, learner, scorer, X_train, y_train, X_test, y_test):
+    def train_eval(self, learner, scorer, X_train, X_test, y_train, y_test):
         start = time()
         learner = learner.fit(X_train, y_train)
         end = time()
@@ -134,7 +134,7 @@ class Model():
         trained_models = []
 
         for learner in list(learners.values()):
-            train_info = self.train_eval(learner, scorer, X_train, y_train, X_test, y_test)
+            train_info = self.train_eval(learner, scorer, X_train, X_test, y_train, y_test)
             trained_models += [train_info]            
 
         return trained_models
