@@ -170,3 +170,17 @@ class Model():
       tuned_score = scorer(y_test, best_predictions)
 
       return best_learner, default_score, tuned_score
+
+    def get_results_df(results):
+        results_df = pd.DataFrame(columns=['learner', 'train_time', 'pred_time', 'test_score', 'train_score'])
+        for train_info in results:
+            results_df = results_df.append(
+                {
+                    'learner': train_info.learner.__class__.__name__, 
+                    'train_time':train_info. train_time, 
+                    'pred_time': train_info.pred_time, 
+                    'test_score': train_info.test_score, 
+                    'train_score':train_info.train_score
+                }, ignore_index=True)
+        return results_df
+
