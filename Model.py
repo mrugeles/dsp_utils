@@ -6,48 +6,88 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import ExtraTreesClassifier
 
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.experimental import enable_hist_gradient_boosting
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.linear_model import RidgeClassifier 
+from sklearn.linear_model import RidgeClassifierCV 
+from sklearn.linear_model import SGDClassifier 
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import ExtraTreeClassifier 
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import BaggingRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import PassiveAggressiveRegressor
+from sklearn.linear_model import SGDRegressor 
+from sklearn.neural_network import MLPRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import ExtraTreeRegressor 
+from sklearn.neighbors import KNeighborsRegressor
+import xgboost as xgb
+
 import pandas as pd
+from time import time
+
+class TrainInfo():
+    def __init__(self, learner, train_time, pred_time, test_score, train_score):
+        self.learner = None
+        self.train_time = None
+        self.pred_time = None
+        self.test_score = None
+        self.train_score = None
+
 
 class Model():
 
-    regressors_parameters = {
-        'GradientBoostingRegressor': {
-            'loss': ['ls', 'lad', 'huber', 'quantile'],
-            'learning_rate':[0.1, 0.001],
-            'n_estimators':[100, 150, 200, 250],
-            'subsample':[0.5, 1, 1.5, 2],
-            'criterion':['friedman_mse', 'mse', 'mae'],
-            'min_samples_split':[2, 3, 4],
-            'random_state':[100, 200]
-        },
-        'GaussianProcessRegressor': {
-            'normalize_y':[True, False],
-            'random_state':[100, 200]
-        },
-        'ARDRegression': {
-            'n_iter':[200, 300, 400],
-            'compute_score':[True, False],
-            'fit_intercept':[True, False],
-            'normalize':[True, False]
-        } ,
-        'LinearRegression': {
-        'fit_intercept':[True, False],
-        'normalize':[True, False]
-        },
-    }
+    def init_regressors(self, seed):
+        return {
+            'AdaBoostRegressor': AdaBoostRegressor(random_state = seed),
+            'BaggingRegressor': BaggingRegressor(random_state = seed),
+            'ExtraTreesRegressor': ExtraTreesRegressor(random_state = seed),
+            'GradientBoostingRegressor': GradientBoostingRegressor(random_state = seed),
+            'RandomForestRegressor': RandomForestRegressor(random_state = seed),
+            'XGBRegressor': xgb.XGBRegressor(),
+            'LogisticRegression': LogisticRegression(random_state = seed),
+            'PassiveAggressiveRegressor': PassiveAggressiveRegressor(random_state = seed),
+            'SGDRegressor': SGDRegressor(random_state = seed),
+            'KNeighborsRegressor': KNeighborsRegressor(),
+            'MLPRegressor': MLPRegressor(random_state = seed),
+            'DecisionTreeRegressor': DecisionTreeRegressor(random_state = seed),
+            'ExtraTreeRegressor': ExtraTreeRegressor(random_state = seed),
+        }   
 
-    regressors = None
 
-    def __init__(self):
-        self.init_regressors()
-
-    def init_regressors(self):
-        self.regressors = {
-            'GradientBoostingRegressor': GradientBoostingRegressor(),
-            'GaussianProcessRegressor': GaussianProcessRegressor(),
-            'ARDRegression': ARDRegression(),
-            'LinearRegression': LinearRegression(),
-        }
+    def init_classifiers(self, seed):
+        return {
+            'AdaBoostClassifier': AdaBoostClassifier(random_state = seed),
+            'BaggingClassifier': BaggingClassifier(random_state = seed),
+            'ExtraTreesClassifier': ExtraTreesClassifier(random_state = seed),
+            'GradientBoostingClassifier': GradientBoostingClassifier(random_state = seed),
+            'RandomForestClassifier': RandomForestClassifier(random_state = seed),
+            'HistGradientBoostingClassifier': HistGradientBoostingClassifier(random_state = seed),
+            'XGBClassifier': xgb.XGBClassifier(),
+            'LogisticRegression': LogisticRegression(random_state = seed),
+            'PassiveAggressiveClassifier': PassiveAggressiveClassifier(random_state = seed),
+            'RidgeClassifier': RidgeClassifier(random_state = seed),
+            'RidgeClassifierCV': RidgeClassifierCV(),
+            'SGDClassifier': SGDClassifier(random_state = seed),
+            'KNeighborsClassifier': KNeighborsClassifier(),
+            'MLPClassifier': MLPClassifier(random_state = seed),
+            'DecisionTreeClassifier': DecisionTreeClassifier(random_state = seed),
+            'ExtraTreeClassifier': ExtraTreeClassifier(random_state = seed),
+        }    
 
     ###
     #      This method trains a model.
@@ -64,7 +104,7 @@ class Model():
     #       dfResults (dataset): Dataset with information about the trained model.
     ###
 
-    def train_predict(self, learner, scorer, X_train, y_train, X_test, y_test):
+    def train_eval(self, learner, scorer, X_train, y_train, X_test, y_test):
         start = time()
         learner = learner.fit(X_train, y_train)
         end = time()
@@ -78,33 +118,26 @@ class Model():
 
         pred_time = end - start
 
-        f_train = scorer(y_train, predictions_train)
-        f_test =  scorer(y_test, predictions_test)
+        train_score = scorer(y_train, predictions_train)
 
-        return learner
+        test_score =  scorer(y_test, predictions_test)
+    
+        return TrainInfo(learner, train_time, pred_time, test_score, train_score)
 
-    def train_models(self, learners_dict, scorer, X_train, y_train, X_test, y_test):
-        dfResults = pd.DataFrame(columns=['learner', 'train_time', 'pred_time', 'f_test', 'f_train'])
-        print(learners_dict)
-        for k, learner_name in enumerate(learners_dict):
-            learner = learners_dict[learner_name]
-            learner = self.train_predict(learner, scorer, X_train, y_train, X_test, y_test, dfResults)
-            dfResults = dfResults.append({'learner': learner, 'train_time': train_time, 'pred_time': pred_time, 'f_test': f_test, 'f_train':f_train}, ignore_index=True)
+    def split_data(self, df, target, config):
+        from sklearn.model_selection import train_test_split
+        features = df.drop([target], axis = 1)
+        labels = df[target]
+        return train_test_split(features, labels, test_size = config['test_size'], random_state = config['seed'], stratify=labels)
 
-        return dfResults.sort_values(by=['f_test'], ascending = False)
+    def train_models(self, learners, scorer, X_train, X_test, y_train, y_test):
+        trained_models = []
 
-    def get_best_tuned_model(self, learners_dict, learners_parameters, scorer, X_train, X_test, y_train, y_test):
-        best_score = None
-        best_learner = None
-        for k, learner_name in enumerate(learners_dict):
-            learner = learners_dict[learner_name]
-            parameters = learners_parameters[learner_name]
-            learner, default_score, tuned_score = this.tune_learner(learner, parameters, scorer, X_train, X_test, y_train, y_test)
-            if(best_score is None or tuned_score > best_score):
-                best_score = tuned_score
-                best_learner = learner
-        return best_learner
+        for learner in list(learners.values()):
+            train_info = self.train_eval(learner, scorer, X_train, y_train, X_test, y_test)
+            trained_models += [train_info]            
 
+        return trained_models
 
     ###
     #      This method use grid search to tune a learner.
@@ -122,7 +155,7 @@ class Model():
     #       tuned_score (float): Classifier score after being tuned.
     #       cnf_matrix (float): Confusion matrix.
     ###
-    def tune_learner(learner, parameters, scorer, X_train, X_test, y_train, y_test):
+    def tune_learner(self, learner, parameters, scorer, X_train, X_test, y_train, y_test):
 
       c, r = y_train.shape
       labels = y_train.values.reshape(c,)
