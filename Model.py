@@ -42,11 +42,11 @@ from time import time
 
 class TrainInfo():
     def __init__(self, learner, train_time, pred_time, test_score, train_score):
-        self.learner = None
-        self.train_time = None
-        self.pred_time = None
-        self.test_score = None
-        self.train_score = None
+        self.learner = learner
+        self.train_time = train_time
+        self.pred_time = pred_time
+        self.test_score = test_score
+        self.train_score = train_score
 
 
 class Model():
